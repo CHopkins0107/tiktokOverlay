@@ -5,6 +5,12 @@ import praw
 import openai
 import tiktoken
 
+from pydub import AudioSegment
+
+from gtts import gTTS
+
+from helper import clean_name, make_name
+
 load_dotenv() 
 
 client_id = os.getenv("RDT_CLIENT_ID")
@@ -34,7 +40,8 @@ def count_tokens(text, model="gpt-3.5-turbo"):
 
 # Function to generate a similar post using OpenAI API
 def generate_post(posts, max_tokens=10000, buffer=500):
-    prompt = "You will create an original Reddit post for the subreddit 'AmITheAsshole,' adhering to the subreddit's theme where users submit stories from their personal lives and commenters vote on whether the original poster was at fault in the situation. The post should be entirely new and not based on any provided samples. Please ensure the post matches the length, structure, and tone of the subreddit, focusing on storytelling aspects—a concise narrative covering the context of the conflict, the conflict itself, and the immediate social outcome. Additionally, infuse the narrative with a small amount of absurdity and surrealism while still appearing non-fictional. Lastly, make sure all the characters are humans.\nSample posts:"
+    with open('prompt.txt', 'r') as file:
+        prompt = file.read().rstrip()
     total_tokens = count_tokens(prompt)
     
     for post in posts:
@@ -63,3 +70,13 @@ subreddit_name = 'AmItheAsshole'
 posts = fetch_posts(subreddit_name)
 similar_post = generate_post(posts)
 print(similar_post)
+
+
+raw_name = make_name(similar_post)
+filename = clean_name(raw_name)
+relative_path = os.path.join('posts', filename)
+
+with open(relative_path, "w") as output:
+    output.write(similar_post)
+
+   
